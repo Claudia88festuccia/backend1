@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import NavBar from "./components/navbar/BlogNavbar";
 import Footer from "./components/footer/Footer";
@@ -10,8 +10,18 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AuthorPosts from "./components/autorPost/AuthorPosts";  
 import EditBlogPost from "./views/edit/EditBlogPost";
 import AuthorProfile from "./components/authorProfile/AuthorProfile";
+import { use } from "react";
 
 function App() {
+  const fetchAuthors= async ()=>{
+    const res= await fetch(process.env.REACT_APP_API_URL + "/authors");
+    const data= await res.json();
+    console.log(data);
+  }
+
+  useEffect(() => {
+    fetchAuthors();
+  }, []);
   return (
     <Router>
       <NavBar />

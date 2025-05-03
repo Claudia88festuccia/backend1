@@ -5,7 +5,7 @@ const router = express.Router();
   
 
   // Ottieni un commento specifico di un post
-router.get("/blogPosts/:id/comments/:commentId", async (req, res) => {
+router.get("/posts/:id/comments/:commentId", async (req, res) => {
     try {
       const post = await Post.findById(req.params.id);
       if (!post) {
@@ -25,7 +25,7 @@ router.get("/blogPosts/:id/comments/:commentId", async (req, res) => {
   
 
   // Aggiungi un nuovo commento a un post
-router.post("/blogPosts/:id/comments", async (req, res) => {
+router.post("/posts/:id/comments", async (req, res) => {
     try {
       const post = await Post.findById(req.params.id);
       if (!post) {
@@ -49,14 +49,19 @@ router.post("/blogPosts/:id/comments", async (req, res) => {
 
   
   // Modifica un commento di un post
-router.put("/blogPosts/:id/comments/:commentId", async (req, res) => {
+router.put("/posts/:id/comments/:commentId", async (req, res) => {
     try {
-      const post = await Post.findById(req.params.id);
+      const post = await Post.findById(req.params.id)
+      .populate("author", "name avatar")
+      .exec();  
+
       if (!post) {
         return res.status(404).json({ error: "Post non trovato" });
       }
   
-      const comment = post.comments.id(req.params.commentId);
+      const comment = post.comments.id(req.params.commentId)
+      .populate("author")
+      .exec();
       if (!comment) {
         return res.status(404).json({ error: "Commento non trovato" });
       }
@@ -75,7 +80,7 @@ router.put("/blogPosts/:id/comments/:commentId", async (req, res) => {
   
 
   // Elimina un commento specifico di un post
-router.delete("/blogPosts/:id/comments/:commentId", async (req, res) => {
+router.delete("/posts/:id/comments/:commentId", async (req, res) => {
     try {
       const post = await Post.findById(req.params.id);
       if (!post) {

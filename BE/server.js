@@ -8,15 +8,15 @@ console.log("Env Variables:", {
 });
 import express from "express";
 import cors from "cors";
-import Author from "./BE/models/Author.js";
-import authorsRouter from "./BE/routes/authors.js";
-import postsRouter from "./BE/routes/posts.js";
+import Author from "./models/Author.js";
+import authorsRouter from "./routes/authors.js";
+import postsRouter from "./routes/posts.js";
 import connectDB from "./db.js"; 
-import multer from "multer";
-import cloudinary from "cloudinary";
-import Post from "./BE/models/Post.js";
-import commentsRouter from "./BE/routes/comments.js";  
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinaryUploader from "./utils/cloudinary.js";
+import Post from "./models/Post.js";
+import commentsRouter from "./routes/comments.js";  
+
+
 
 const app = express();
 
@@ -46,28 +46,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Configurazione Cloudinary
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_KEY,
-  api_secret: process.env.CLOUDINARY_KEY_SECRET
-});
 
-const storageCloud = new CloudinaryStorage({
-  cloudinary: cloudinary.v2,
-  params: {
-    folder: 'cloud-upload',
-    format: async (req, file) => 'png',
-    public_id: (req, file) => file.originalname,
-  },
-});
-
-const cloud = multer({ storage: storageCloud });
 
 // Rotte per autori e post
 app.use("/authors", authorsRouter);
 app.use("/posts", postsRouter);
-app.use("/blogPosts", postsRouter);
+
+
 
 // Endpoint di base
 app.get("/", (req, res) => {
@@ -84,6 +69,29 @@ app.get('/authors', (req, res) => {
     });
 });
 
+app.get("/posts", async (req, res) => {
+  try {
+    const { title, authorId } = req.query;
+
+    let query = {};
+
+    if (title) {
+      query.title = { $regex: title, $options: "i" }; // Cerca in modo case-insensitive
+    }
+
+    if (authorId) {
+      query.authorId = authorId;
+    }
+
+    const posts = await Post.find(query);
+    res.json(posts);
+  } catch (error) {
+    console.error("Errore nel recupero dei post:", error);
+    res.status(500).json({ error: "Errore nel recupero dei post" });
+  }
+});
+
+
 app.post('/authors', async (req, res) => {
   try {
     const newAuthor = new Author(req.body);
@@ -94,22 +102,6 @@ app.post('/authors', async (req, res) => {
   }
 });
 
-
-app.post('/upload', (req, res) => {
-  try {
-    const file = req.file; // Accesso al file caricato
-    cloudinary.uploader.upload(file.path, (result) => {
-      if (result.error) {
-        res.status(500).json({ error: 'Errore nel caricamento su Cloudinary', details: result.error });
-      } else {
-        res.status(200).json({ message: 'Caricamento riuscito', data: result });
-      }
-    });
-  } catch (error) {
-    console.error('Errore interno del server:', error);
-    res.status(500).json({ error: 'Errore interno del server', details: error.message });
-  }
-});
 
 
 connectDB();

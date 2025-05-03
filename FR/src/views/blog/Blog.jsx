@@ -28,12 +28,16 @@ const Blog = () => {
   }, [id]);
 
   // Debugging: logga i dati del blog per vedere se c'è l'ID dell'autore
-useEffect(() => {
-  if (blog) {
-    console.log("Dati del blog:", blog);
-    console.log("ID dell'autore:", blog?.author?._id);
-  }
-}, [blog]);
+  useEffect(() => {
+    if (blog) {
+      console.log("Dati del blog:", blog);
+      if (blog.author) {
+        console.log("ID dell'autore:", blog.author._id);
+      } else {
+        console.warn("Attenzione: l'autore non è presente nel blog");
+      }
+    }
+  }, [blog]);
 
   // Funzione per eliminare il post
   const handleDelete = async () => {

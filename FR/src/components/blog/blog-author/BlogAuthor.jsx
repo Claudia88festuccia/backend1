@@ -3,16 +3,15 @@ import { Col, Image, Row } from "react-bootstrap";
 import AvatarUploader from "../../avatarUploader/AvatarUploader";
 import "./styles.css";
 
-const BlogAuthor = (props) => {
-  const { name, avatar, authorId: _id } = props;
-  const [currentAvatar, setCurrentAvatar] = useState(avatar);
+const BlogAuthor = ({ author }) => {
+  const isValidAuthor = author && author._id;
+  const { name, avatar, _id } = isValidAuthor ? author : {};
+  const [currentAvatar, setCurrentAvatar] = useState(avatar || "");
 
-  // Controlla che _id esista prima di passarlo
-  if (!_id) {
-    console.error("ID dell'autore mancante nel componente BlogAuthor");
+  if (!isValidAuthor) {
+    console.error("Autore non valido o ID mancante");
+    return <div>Errore: Autore mancante</div>;
   }
-
-  console.log("Autore:", props.author);
 
   return (
     <Row>
@@ -22,12 +21,14 @@ const BlogAuthor = (props) => {
       <Col>
         <div>di</div>
         <h6>{name}</h6>
-        {/* Passa _id come authorId */}
         <AvatarUploader authorId={_id} onUpload={setCurrentAvatar} />
       </Col>
     </Row>
   );
 };
 
+
 export default BlogAuthor;
+
+
 

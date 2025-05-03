@@ -1,32 +1,11 @@
-import dotenv from "dotenv";
-dotenv.config();
 
 import express from "express";
 import Post from "../models/Post.js";
-import multer from "multer";
-import cloudinary from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinaryUploader from "../utils/cloudinary.js";
 
 const router = express.Router();
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_KEY,
-  api_secret: process.env.CLOUDINARY_KEY_SECRET,
-});
-
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary.v2,
-  params: {
-    folder: 'post-covers',
-    format: async () => 'jpg',
-    public_id: (req, file) => file.originalname,
-  },
-});
-
-const upload = multer({ storage });
-
-router.patch("/:postId/cover", upload.single("cover"), async (req, res) => {
+router.patch("/:postId/cover", cloudinaryUploader.single("cover"), async (req, res) => {
   try {
     const updatedPost = await Post.findByIdAndUpdate(
       req.params.postId,
@@ -71,7 +50,7 @@ router.get("/", async (req, res) => {
 
 // routes/blogPosts.js
 
-router.get("/authors/:authorId/blogPosts", async (req, res) => {
+router.get("/posts/authors/:authorId/posts", async (req, res) => {
   try {
     const posts = await Post.find({ author: req.params.authorId });
     res.json(posts);
@@ -83,27 +62,45 @@ router.get("/authors/:authorId/blogPosts", async (req, res) => {
 // GET singolo post
 router.get("/:id", async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
-    if (post) {
-      res.json(post);
-    } else {
-      res.status(404).json({ error: "Post non trovato" });
-    }
-  } catch (error) {
-    res.status(400).json({ error: "ID non valido" });
+    const post = await Post.findById(req.params.id).populate("author"); // <-- questo è fondamentale
+    if (!post) return res.status(404).send("Post non trovato");
+    res.json(post);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Errore del server");
   }
 });
 
 
 // POST nuovo post
-router.post("/", async (req, res) => {
-  console.log("📩 Ricevuta POST /posts");
+// router.post("/", async (req, res) => {
+//   console.log("📩 Ricevuta POST /posts");
+//   try {
+//     const newPost = new Post(req.body);
+//     await newPost.save();
+//     res.status(201).json(newPost);
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// });
+
+// POST con upload immagine
+router.post("/", cloudinaryUploader.single("avatar"), async (req, res) => {
   try {
-    const newPost = new Post(req.body);
+    const { title, content, authorId } = req.body;
+
+    const newPost = new Post({
+      title,
+      content,
+      authorId,
+      cover: req.file?.path, // URL Cloudinary se presente
+    });
+
     await newPost.save();
     res.status(201).json(newPost);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Errore nel POST /posts:", error);
+    res.status(400).json({ error: "Errore nella creazione del post" });
   }
 });
 

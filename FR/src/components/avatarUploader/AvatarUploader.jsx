@@ -1,9 +1,29 @@
-import React, { useState } from "react";
-import { Button } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Button, Image } from "react-bootstrap";
 
-const AvatarUploader = ({ authorId, onUpload }) => {
+const AvatarUploader = ({ authorId }) => {
   const [image, setImage] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const [error, setError] = useState(null);
+
+  // Carica avatar corrente all'avvio
+  useEffect(() => {
+    const fetchAvatar = async () => {
+      try {
+        const res = await fetch(`http://localhost:3001/authors/${authorId}/avatar`);
+        const data = await res.json();
+        if (data.avatar) {
+          setAvatarUrl(data.avatar);
+        }
+      } catch (err) {
+        console.error("Errore nel caricamento dell'avatar esistente:", err);
+      }
+    };
+
+    if (authorId) {
+      fetchAvatar();
+    }
+  }, [authorId]);
 
   const handleUpload = async () => {
     if (!authorId) {
@@ -30,7 +50,7 @@ const AvatarUploader = ({ authorId, onUpload }) => {
       }
 
       const data = await response.json();
-      onUpload(data.authorId.avatar);
+      setAvatarUrl(data.avatar); // aggiorna anteprima
       setError(null);
     } catch (err) {
       console.error("Errore nel caricamento dell'avatar:", err);
@@ -40,6 +60,24 @@ const AvatarUploader = ({ authorId, onUpload }) => {
 
   return (
     <div>
+      {avatarUrl && (
+        <div className="mb-3">
+          <Image
+            src={avatarUrl || "https://cdn-icons-png.flaticon.com/512/149/149071.png?text=Avatar"}
+            onError={(e) => {
+              if (e.target.src !== "https://cdn-icons-png.flaticon.com/512/149/149071.png?text=Avatar") {
+              e.target.onerror = null; // previene loop infiniti
+              e.target.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png?text=Avatar";
+              }
+            }}
+            roundedCircle
+            width={100}
+            height={100}
+            alt="Avatar autore"
+          />
+
+        </div>
+      )}
       <input
         type="file"
         accept="image/*"
@@ -50,7 +88,6 @@ const AvatarUploader = ({ authorId, onUpload }) => {
     </div>
   );
 };
-
 
 export default AvatarUploader;
 

@@ -10,11 +10,11 @@ const BlogList = ({ search,authorId }) => {
   useEffect(() => {
     // Se la search è vuota, recuperiamo tutti i post
     let url = search
-      ? `http://localhost:3001/blogPosts?title=${search}`  // Filtra per titolo
-      : "http://localhost:3001/blogPosts";  // Recupera tutti i post
+      ? `http://localhost:3001/posts?title=${search}`  // Filtra per titolo
+      : "http://localhost:3001/posts";  // Recupera tutti i post
 
       if (authorId) {
-        url = `http://localhost:3001/blogPosts/authors/${authorId}/blogPosts`;  
+        url = `http://localhost:3001/posts/authors/${authorId}/posts`;  
       }
       
 
