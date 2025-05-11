@@ -1,56 +1,62 @@
-
+import mongoose from "mongoose";
 import express from "express";
 import Post from "../models/Post.js";
-import cloudinaryUploader from "../utils/cloudinary.js";
-
+import authenticateToken from "../routes/middleware/authMiddleware.js";
+import {createUploader} from "../utils/cloudinary.js";
+const uploader = createUploader("post-covers");
 const router = express.Router();
 
-router.patch("/:postId/cover", cloudinaryUploader.single("cover"), async (req, res) => {
-  try {
-    const updatedPost = await Post.findByIdAndUpdate(
-      req.params.postId,
-      { cover: req.file.path },
-      { new: true }
-    );
-    if (!updatedPost) {
-      return res.status(404).json({ error: "Post non trovato" });
+
+//carica cover
+router.patch(
+  "/posts/:id/cover",
+  authenticateToken,
+  uploader.single("cover"),
+  async (req, res) => {
+    try {
+      const post = await Post.findById(req.params.id);
+      if (!post) return res.status(404).json({ error: "Post non trovato" });
+
+      post.cover = req.file.path;
+      await post.save();
+      res.json({ message: "Cover aggiornata", coverUrl: post.cover });
+    } catch (err) {
+      console.error("Errore upload cover:", err);
+      res.status(500).json({ error: "Errore durante l'upload" });
     }
-    res.json(updatedPost);
-  } catch (err) {
-    res.status(500).json({ error: "Errore nel caricamento della copertina" });
   }
-});
+);
+
 
 // GET tutti i post
 
-router.get("/", async (req, res) => {
+router.get("/posts", async (req, res) => {
   try {
-    const { title } = req.query;
-    const query = title ? { title: { $regex: title, $options: 'i' } } : {};
-    const posts = await Post.find(query);
-    res.json(posts);
-  } catch (error) {
-    res.status(500).json({ error: "Errore nel recupero dei post" });
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 10
+    const skip = (page - 1) * limit
+
+    const total = await Post.countDocuments()
+    const posts = await Post.find()
+      .skip(skip)
+      .limit(limit)
+      .populate("author", "-password")
+      .sort({ createdAt: -1 })
+
+    res.json({
+      posts,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalPosts: total,
+    })
+  } catch (err) {
+    res.status(500).json({ error: "Errore nel recupero dei post" })
   }
-});
-
-// router.get("/", (req, res) => {
-//   res.send("Questa è la route dei post");
-// });
-
-// router.get("/", async (req, res) => {
-//   try {
-//     const posts = await Post.find();
-//     res.json(posts);
-//   } catch (error) {
-//     res.status(500).json({ error: "Errore nel recupero dei post" });
-//   }
-// });
+})
 
 
-// routes/blogPosts.js
 
-router.get("/posts/authors/:authorId/posts", async (req, res) => {
+router.get("/authors/:authorId/posts", async (req, res) => {
   try {
     const posts = await Post.find({ author: req.params.authorId });
     res.json(posts);
@@ -62,50 +68,55 @@ router.get("/posts/authors/:authorId/posts", async (req, res) => {
 // GET singolo post
 router.get("/:id", async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id).populate("author"); // <-- questo è fondamentale
-    if (!post) return res.status(404).send("Post non trovato");
-    res.json(post);
+    const post = await Post.findById(req.params.id).populate("author", "-password")
+    if (!post) return res.status(404).json({ error: "Post non trovato" })
+    res.json(post)
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Errore del server");
+    res.status(500).json({ error: "Errore nel recupero del post" })
   }
-});
+})
 
-
-// POST nuovo post
-// router.post("/", async (req, res) => {
-//   console.log("📩 Ricevuta POST /posts");
-//   try {
-//     const newPost = new Post(req.body);
-//     await newPost.save();
-//     res.status(201).json(newPost);
+// router.get("/posts/:id", async (req, res) => {
+//    try {
+//     const post = await Post.findById(req.params.id).populate("author", "-password")
+//     if (!post) return res.status(404).json({ error: "Post non trovato" })
+//     res.json(post)
 //   } catch (error) {
-//     res.status(400).json({ error: error.message });
+//     console.error("Errore nel fetch del post:", error)
+//     res.status(500).json({ error: "Errore interno del server" })
 //   }
-// });
+// }) 
 
-// POST con upload immagine
-router.post("/", cloudinaryUploader.single("avatar"), async (req, res) => {
+
+//crea un nuovo post
+router.post("/", authenticateToken, async (req, res) => {
   try {
-    const { title, content, authorId } = req.body;
+    const { title, category, content, author, readTime } = req.body
+
+    if (!title || !category || !content  || !readTime?.value || !readTime?.unit) {
+      return res.status(400).json({ error: "Dati mancanti" })
+    }
 
     const newPost = new Post({
       title,
+      category,
       content,
-      authorId,
-      cover: req.file?.path, // URL Cloudinary se presente
-    });
+      author: req.user._id,
+      readTime,
+      createdAt: new Date(),
+    })
 
-    await newPost.save();
-    res.status(201).json(newPost);
+    const saved = await newPost.save()
+    res.status(201).json(saved)
   } catch (error) {
-    console.error("Errore nel POST /posts:", error);
-    res.status(400).json({ error: "Errore nella creazione del post" });
+    console.error("Errore creazione post:", error)
+    res.status(500).json({ error: "Errore nella creazione del post" })
   }
-});
+})
+
 
 // PUT modifica post
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticateToken, async (req, res) => {
   try {
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -123,7 +134,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE elimina post
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticateToken, async (req, res) => {
   try {
     const deletedPost = await Post.findByIdAndDelete(req.params.id);
     if (deletedPost) {

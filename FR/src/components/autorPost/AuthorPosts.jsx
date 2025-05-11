@@ -12,7 +12,7 @@ const AuthorPosts = () => {
   useEffect(() => {
     const fetchAuthorPosts = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/authors/${id}/blogPosts`);
+        const res = await fetch(`http://localhost:3001/authors/${id}/Posts`);
         if (!res.ok) throw new Error("Errore nel recupero dei post");
         const data = await res.json();
         setPosts(data);

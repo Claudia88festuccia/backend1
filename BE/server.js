@@ -1,24 +1,49 @@
 
-import dotenv from "dotenv";
-dotenv.config();
-console.log("Env Variables:", {
-  CLOUDINARY_NAME: process.env.CLOUDINARY_NAME,
-  CLOUDINARY_KEY: process.env.CLOUDINARY_KEY,
-  CLOUDINARY_KEY_SECRET: process.env.CLOUDINARY_KEY_SECRET,
-});
+
 import express from "express";
+import session from "express-session";
+import passport from 'passport';
+import dotenv, { config } from "dotenv";
 import cors from "cors";
-import Author from "./models/Author.js";
-import authorsRouter from "./routes/authors.js";
-import postsRouter from "./routes/posts.js";
-import connectDB from "./db.js"; 
-import cloudinaryUploader from "./utils/cloudinary.js";
-import Post from "./models/Post.js";
-import commentsRouter from "./routes/comments.js";  
+import connectDB from "./db.js";
+import googleAuthRouter from "./routes/googleAuth.js";
+import "./utils/passport.js";
 
 
+
+dotenv.config();
 
 const app = express();
+
+// Configurazione CORS
+const corsOptions = {
+  origin: "http://localhost:3000", 
+  methods: "GET, POST, PUT, DELETE, PATCH", 
+  allowedHeaders: "Content-Type, Authorization", 
+};
+
+app.use(cors(corsOptions));
+
+// Middleware per la gestione delle sessioni
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+app.use(passport.initialize())
+app.use(passport.session());
+
+app.use(express.json());
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+});
+
+app.use(googleAuthRouter)
+app.use(commentsRouter)
 
 connectDB().then(() => {
     // Avvia il server solo se la connessione è riuscita
@@ -29,29 +54,30 @@ connectDB().then(() => {
     console.error("Errore nel tentativo di connessione al database:", err);
 });
 
-// Configurazione CORS
-const corsOptions = {
-  origin: "http://localhost:3000", 
-  methods: "GET, POST, PUT, DELETE, PATCH", 
-  allowedHeaders: "Content-Type, Authorization", 
-};
 
-app.use(express.json());
-app.use(commentsRouter)
-app.use(cors(corsOptions));
-
-
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.originalUrl}`);
-  next();
+console.log("Env Variables:", {
+  CLOUDINARY_NAME: process.env.CLOUDINARY_NAME,
+  CLOUDINARY_KEY: process.env.CLOUDINARY_KEY,
+  CLOUDINARY_KEY_SECRET: process.env.CLOUDINARY_KEY_SECRET,
 });
 
+
+import Author from "./models/Author.js";
+import authorsRouter from "./routes/authors.js";
+import postsRouter from "./routes/posts.js"; 
+import { createUploader } from "./utils/cloudinary.js";
+const cloudinaryUploader = createUploader("avatars")
+import Post from "./models/Post.js";
+import commentsRouter from "./routes/comments.js";  
+import usersRouter from "./routes/users.js";
+import loginRouter from "./routes/login.js";
 
 
 // Rotte per autori e post
 app.use("/authors", authorsRouter);
 app.use("/posts", postsRouter);
-
+app.use("/users", usersRouter);
+app.use("/login",loginRouter);
 
 
 // Endpoint di base
@@ -59,15 +85,15 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.get('/authors', (req, res) => {
-  console.log("Richiesta ricevuta per gli autori");
-  Author.find()
-    .then(authors => res.json(authors))
-    .catch(err => {
-      console.error("Errore:", err);
-      res.status(500).send('Errore nel recupero degli autori');
-    });
-});
+// app.get('/authors', (req, res) => {
+//   console.log("Richiesta ricevuta per gli autori");
+//   Author.find()
+//     .then(authors => res.json(authors))
+//     .catch(err => {
+//       console.error("Errore:", err);
+//       res.status(500).send('Errore nel recupero degli autori');
+//     });
+// });
 
 app.get("/posts", async (req, res) => {
   try {
@@ -104,7 +130,6 @@ app.post('/authors', async (req, res) => {
 
 
 
-connectDB();
 
 // Middleware per la gestione degli errori
 app.use((err, req, res, next) => {
@@ -115,5 +140,4 @@ app.use((err, req, res, next) => {
     return res.status(500).json({ error: "Errore interno del server" });
   }
 });
-
 

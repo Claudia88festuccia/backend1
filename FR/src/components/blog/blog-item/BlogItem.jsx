@@ -1,38 +1,46 @@
-import React from "react";
-import { Card } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import BlogAuthor from "../blog-author/BlogAuthor";
+import { Card } from "react-bootstrap"
+import { Link } from "react-router-dom"
 
-import "./styles.css";
-
-const BlogItem = (props) => {
-  const { title, cover, author, _id } = props;
+const BlogItem = ({ _id, title, category, cover, author, createdAt }) => {
   return (
-    <Card className="blog-card">
-      <Link to={`/blog/${_id}`} className="blog-link">
+    <Card className="h-100 shadow-sm">
+      {cover && (
         <Card.Img
           variant="top"
-          src={cover || "https://picsum.photos/1000/300?text=No+Image"}
-          onError={(e) => {
-            e.target.src = "https://picsum.photos/1000/300?text=No+Image";
-          }}
-          className="blog-cover"
+          src={cover}
+          alt={title}
+          style={{ height: "200px", objectFit: "cover" }}
         />
+      )}
+      <Card.Body>
+        <Card.Title>{title}</Card.Title>
+        <Card.Subtitle className="mb-2 text-muted">{category}</Card.Subtitle>
 
-        <Card.Body>
-          <Card.Title>{title}</Card.Title>
-        </Card.Body>
-      </Link>
-      <Card.Footer>
-        {author && author._id ? (
-          <BlogAuthor author={author} />
-        ) : (
-          <p>Autore non trovato</p>
+        {/* Autore */}
+        {author && (
+          <div className="d-flex align-items-center mt-3">
+            <img
+              src={author.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+              alt={author.nome}
+              style={{ width: "40px", height: "40px", borderRadius: "50%", marginRight: "10px" }}
+            />
+            <div>
+              <div style={{ fontWeight: 500 }}>{author.nome} {author.cognome}</div>
+              <div style={{ fontSize: "0.8rem", color: "gray" }}>
+                {new Date(createdAt).toLocaleDateString()}
+              </div>
+            </div>
+          </div>
         )}
-      </Card.Footer>
 
+        <Link to={`/posts/${_id}`} className="btn btn-primary btn-sm mt-3">
+          Leggi di più
+        </Link>
+      </Card.Body>
     </Card>
-  );
-};
+  )
+}
 
-export default BlogItem;
+export default BlogItem
+
+
