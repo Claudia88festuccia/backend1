@@ -8,7 +8,7 @@ const Home = () => {
   const [query, setQuery] = useState("");
   const [authorId, setAuthorId] = useState("");
   return (
-    <Container fluid="sm">
+    <Container fluid="sm" style={{ marginTop: "80px" }}>
       <h1 className="blog-main-title mb-3">Benvenuto sullo Strive Blog!</h1>
 
       <Form className="mb-4">

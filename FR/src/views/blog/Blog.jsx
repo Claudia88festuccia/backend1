@@ -163,7 +163,7 @@ const Blog = () => {
   }
 
   return (
-    <Container className="mt-5">
+    <Container className="mt-5" style={{ marginTop: "80px" }}>
       <h1>{blog.title}</h1>
       <p>
         <strong>Categoria:</strong> {blog.category}

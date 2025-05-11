@@ -36,7 +36,7 @@ const AuthorPosts = () => {
 
   if (error) {
     return (
-      <Container className="mt-5">
+      <Container className="mt-5" style={{ marginTop: "80px" }}>
         <Alert variant="danger">{error}</Alert>
       </Container>
     );

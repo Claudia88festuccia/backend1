@@ -14,7 +14,7 @@ const BlogAuthor = ({ author }) => {
   }
 
   return (
-    <Row>
+    <Row style={{ marginTop: "80px" }}>
       <Col xs={"auto"} className="pe-0">
         <Image className="blog-author" src={currentAvatar} roundedCircle />
       </Col>

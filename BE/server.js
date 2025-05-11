@@ -17,7 +17,8 @@ const app = express();
 
 // Configurazione CORS
 const corsOptions = {
-  origin: "http://localhost:3000", 
+  // origin: "http://localhost:3000", 
+  origin: "https://backend1-pi-wine.vercel.app",
   methods: "GET, POST, PUT, DELETE, PATCH", 
   allowedHeaders: "Content-Type, Authorization", 
 };

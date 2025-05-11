@@ -48,7 +48,7 @@ const AuthorsList = () => {
   if (error) return <Alert variant="danger">{error}</Alert>
 
   return (
-    <Container className="mt-4">
+    <Container className="mt-4"style={{ marginTop: "80px" }} >
       <h2>Lista Autori</h2>
       <Row>
         {authors.map((author) => (

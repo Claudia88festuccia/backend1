@@ -69,7 +69,7 @@ const EditAuthor = () => {
   if (loading) return <Spinner animation="border" className="m-5" />
 
   return (
-    <Container className="mt-5">
+    <Container className="mt-5" style={{ marginTop: "80px" }}>
       <h2>Modifica Autore</h2>
       {error && <Alert variant="danger">{error}</Alert>}
       <Form onSubmit={handleSubmit}>

@@ -42,7 +42,7 @@ if (query) url += `&title=${query}`
   }
 
   return (
-    <Container className="mt-4">
+    <Container className="mt-4" style={{ marginTop: "80px" }}>
       <Form onSubmit={handleSearch} className="mb-4 d-flex gap-2">
         <Form.Control
           type="text"

@@ -40,7 +40,7 @@ const Login = () => {
   }
 
   return (
-    <Container className="mt-5" style={{ maxWidth: "500px" }}>
+    <Container className="mt-5" > style={{ marginTop: "80px" }}
       <h2>Login</h2>
       {error && <Alert variant="danger">{error}</Alert>}
       <Form onSubmit={handleLogin}>

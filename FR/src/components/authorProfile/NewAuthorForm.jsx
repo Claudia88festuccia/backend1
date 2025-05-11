@@ -41,7 +41,7 @@ const NewAuthorForm = () => {
   }
 
   return (
-    <Container className="mt-5">
+    <Container className="mt-5"style={{ marginTop: "80px" }} >
       <h2>Nuovo Autore</h2>
       {error && <Alert variant="danger">{error}</Alert>}
       <Form onSubmit={handleSubmit} encType="multipart/form-data">

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 
 const BlogItem = ({ _id, title, category, cover, author, createdAt }) => {
   return (
-    <Card className="h-100 shadow-sm">
+    <Card className="h-100 shadow-sm"style={{ marginTop: "80px" }} >
       {cover && (
         <Card.Img
           variant="top"
