@@ -1,3 +1,6 @@
 body {
   font-family: "Ubuntu", sans-serif;
 }
+.main-content {
+  margin-top: var(--bs-navbar-height, 56px);
+}
