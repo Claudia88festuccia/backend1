@@ -8,19 +8,6 @@ import { createAccessToken } from "../routes/tools.js"
 
 dotenv.config()
 
-// app.use(session({
-//   secret: process.env.SESSION_SECRET || 'your-secret-key',
-//   resave: false,
-//   saveUninitialized: false,
-//   cookie: {
-//     secure: false, 
-//     maxAge: 24 * 60 * 60 * 1000 // 1 giorno
-//   }
-// }));
-
-// app.use(passport.initialize());
-// app.use(passport.session());
-
 passport.use(
   new GoogleStrategy(
     {
