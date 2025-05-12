@@ -15,12 +15,22 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://backend1-pi-wine.vercel.app", 
+];
+
 // Configurazione CORS
 const corsOptions = {
-  // origin: "http://localhost:3000", 
-  origin: "https://backend1-pi-wine.vercel.app",
-  methods: "GET, POST, PUT, DELETE, PATCH", 
-  allowedHeaders: "Content-Type, Authorization", 
+   origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS: " + origin));
+    }
+  },
+  methods: "GET,POST,PUT,PATCH,DELETE",
+  allowedHeaders: "Content-Type,Authorization",
 };
 
 app.use(cors(corsOptions));
